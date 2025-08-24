@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Survey</title>
+  <link rel="stylesheet" href="./css/theme.css"/>
+</head>
+<body>
+<div class="container">
+  <div class="card" id="box">
+    <h2 id="title" style="margin-top:0">Loading…</h2>
+    <form id="form" class="grid"></form>
+    <div class="center" style="margin-top:12px">
+      <button class="btn" id="submitBtn">Submit</button>
+    </div>
+  </div>
+
+  <!-- Thank-you (Lottie) -->
+  <div id="thanks" class="card center" style="display:none">
+    <div id="anim" style="width:180px;height:180px;margin:0 auto 8px"></div>
+    <h3>Thank you!</h3>
+    <p>Your response has been recorded.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lottie-web@5/build/player/lottie.min.js"></script>
+<script>
+const qs = s=>document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+
+let survey=null;
+
+async function load(){
+  const res = await fetch('/api/surveys/'+id);
+  if(!res.ok){ qs('#box').innerHTML='<p>Survey not found.</p>'; return; }
+  survey = await res.json();
+  qs('#title').textContent = survey.title;
+  const form = qs('#form');
+  form.innerHTML='';
+  survey.questions.forEach((q,idx)=>{
+    const item = document.createElement('div');
+    item.className='card';
+    item.innerHTML = `<div class="label">${idx+1}) ${q.text}</div>`;
+    if(q.type==='text'){
+      item.innerHTML += `<textarea class="input" name="q${idx}" placeholder="Write a few sentences..."></textarea>`;
+    }
+    if(q.type==='mcq'){
+      const opts = q.options.map((o,oi)=>`
+        <label style="display:block;margin:6px 0">
+          <input type="radio" name="q${idx}" value="${o}"> ${o||'Option'}
+        </label>`).join('');
+      item.innerHTML += opts;
+    }
+    if(q.type==='scale'){
+      item.innerHTML += `
+        <div class="grid grid-2">
+          <span>${q.min}</span><span style="text-align:right">${q.max}</span>
+        </div>
+        <input class="input" type="range" min="${q.min}" max="${q.max}" step="1" name="q${idx}" value="${Math.round((q.min+q.max)/2)}"/>
+      `;
+    }
+    form.appendChild(item);
+  });
+}
+load();
+
+qs('#submitBtn').onclick = async (e)=>{
+  e.preventDefault();
+  const form = new FormData(qs('#form'));
+  const answers = survey.questions.map((q,idx)=>{
+    const key = 'q'+idx;
+    let v = form.get(key);
+    if(q.type==='text')  v = (qs(`[name=${key}]`)?.value||'').trim();
+    if(q.type==='scale') v = Number(v);
+    return {type:q.type, question:q.text, answer:v};
+  });
+  const res = await fetch('/api/surveys/'+id+'/responses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answers})});
+  if(res.ok){
+    // Play Lottie fully (no cut-off)
+    const wrap = qs('#thanks'); wrap.style.display='block';
+    qs('#box').style.display='none';
+    const anim = lottie.loadAnimation({
+      container: qs('#anim'),
+      renderer: 'svg',
+      loop: false,
+      autoplay: true,
+      path: './animations/thankyou.json'
+    });
+    anim.addEventListener('loaded_images', ()=>{
+      // keep visible for the exact animation duration
+      const ms = anim.getDuration(true)*1000;
+      setTimeout(()=>{}, ms);
+    });
+  } else {
+    alert('Failed to submit.');
+  }
+};
+</script>
+</body>
+</html>

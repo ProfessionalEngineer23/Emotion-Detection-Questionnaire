@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Create Survey</title>
+  <link rel="stylesheet" href="./css/theme.css"/>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h2 style="margin-top:0">Create a new survey</h2>
+
+    <div class="label">Survey title</div>
+    <input id="title" class="input" placeholder="e.g., Assignment Emotion Questionnaire"/>
+
+    <div class="toolbar" style="margin:16px 0">
+      <button class="btn" id="addText">+ Text Question</button>
+      <button class="btn" id="addMCQ">+ Multiple Choice</button>
+      <button class="btn" id="addScale">+ Scale</button>
+    </div>
+
+    <div id="list" class="grid"></div>
+
+    <div class="center" style="margin-top:16px">
+      <button class="btn" id="createBtn">Create survey</button>
+    </div>
+
+    <div id="share" style="display:none;margin-top:20px">
+      <div class="label">Invite link</div>
+      <input id="link" class="input" readonly/>
+      <div class="grid grid-2" style="align-items:center;margin-top:8px">
+        <canvas id="qr" style="max-width:240px;justify-self:center;background:#fff;border-radius:12px;padding:8px"></canvas>
+        <p>Share this <span class="badge">link</span> or have participants scan the <span class="badge">QR code</span> to answer.<br/>
+        <a class="link" id="viewAnalytics">Open analytics</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+const questions = [];
+const list = document.getElementById('list');
+
+function render(){
+  list.innerHTML = '';
+  questions.forEach((q,i)=>{
+    const wrap = document.createElement('div');
+    wrap.className='card';
+    wrap.innerHTML = `
+      <div class="grid ${q.type==='scale'?'grid-2':''}">
+        <div>
+          <div class="label">Question ${i+1}</div>
+          <input class="input" value="${q.text||''}" placeholder="Write the question..."/>
+          <div style="margin-top:6px" class="badge">${q.type.toUpperCase()}</div>
+        </div>
+        <div id="extra"></div>
+      </div>
+      <div class="toolbar" style="margin-top:12px">
+        <button class="btn" data-act="dup">Duplicate</button>
+        <button class="btn" data-act="del">Remove</button>
+      </div>`;
+    const input = wrap.querySelector('input.input');
+    input.oninput = e=>{ q.text=e.target.value };
+
+    const extra = wrap.querySelector('#extra');
+    if(q.type==='mcq'){
+      extra.innerHTML = `
+        <div class="label">Options</div>
+        <div id="opts" class="grid"></div>
+        <div class="toolbar">
+          <button class="btn" data-add>+ Option</button>
+        </div>`;
+      const optsDiv = extra.querySelector('#opts');
+      function drawOpts(){
+        optsDiv.innerHTML='';
+        q.options.forEach((opt,oi)=>{
+          const row=document.createElement('div');
+          row.innerHTML = `<input class="input" value="${opt}" placeholder="Option ${oi+1}"/>`;
+          row.querySelector('input').oninput=e=>{ q.options[oi]=e.target.value };
+          optsDiv.appendChild(row);
+        });
+      }
+      drawOpts();
+      extra.querySelector('[data-add]').onclick=()=>{ q.options.push(''); drawOpts(); };
+    }
+    if(q.type==='scale'){
+      extra.innerHTML = `
+        <div>
+          <div class="label">Scale min</div><input class="input" type="number" value="${q.min}">
+        </div>
+        <div>
+          <div class="label">Scale max</div><input class="input" type="number" value="${q.max}">
+        </div>`;
+      const [minI,maxI]=extra.querySelectorAll('input');
+      minI.oninput=e=>{ q.min = Number(e.target.value) };
+      maxI.oninput=e=>{ q.max = Number(e.target.value) };
+    }
+
+    wrap.querySelector('[data-act="del"]').onclick=()=>{ questions.splice(i,1); render(); };
+    wrap.querySelector('[data-act="dup"]').onclick=()=>{ questions.splice(i+1,0,JSON.parse(JSON.stringify(q))); render(); };
+    list.appendChild(wrap);
+  });
+}
+document.getElementById('addText').onclick = ()=>{ questions.push({type:'text',text:''}); render(); };
+document.getElementById('addMCQ').onclick  = ()=>{ questions.push({type:'mcq',text:'',options:['','']}); render(); };
+document.getElementById('addScale').onclick= ()=>{ questions.push({type:'scale',text:'',min:1,max:5}); render(); };
+
+document.getElementById('createBtn').onclick = async ()=>{
+  const title = document.getElementById('title').value.trim() || 'Untitled survey';
+  const payload = { title, questions };
+  const res = await fetch('/api/surveys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!res.ok){ alert('Failed to create survey'); return; }
+  const data = await res.json();
+  const link = `${location.origin}/survey.html?id=${data.id}`;
+  document.getElementById('link').value = link;
+  document.getElementById('share').style.display='block';
+  const canvas = document.getElementById('qr');
+  QRCode.toCanvas(canvas, link, {width:220});
+  document.getElementById('viewAnalytics').href = `./analytics.html?id=${data.id}`;
+  navigator.clipboard?.writeText(link).catch(()=>{});
+};
+</script>
+</body>
+</html>

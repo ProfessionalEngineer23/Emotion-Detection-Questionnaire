@@ -1,0 +1,24 @@
+:root{
+  --bg:#fffbea;          /* light yellow */
+  --card:#fff3b0;        /* softer yellow */
+  --accent:#ffd84d;      /* bright yellow */
+  --accent-2:#ffcc00;
+  --ink:#2a2a2a;
+  --muted:#666;
+  --radius:18px;
+  --shadow:0 10px 30px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 system-ui,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
+.container{max-width:960px;margin:40px auto;padding:0 16px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+.btn{background:var(--accent);border:none;border-radius:999px;padding:12px 20px;font-weight:700;cursor:pointer}
+.btn:hover{filter:brightness(0.95)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.input, select{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.08);background:#fff}
+.label{font-weight:700;margin:8px 0 4px}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.badge{display:inline-block;background:#fff;padding:4px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.06)}
+.link{color:#000;text-decoration:underline dotted}
+.center{text-align:center}

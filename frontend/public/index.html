@@ -1,50 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Assignment Emotion Questionnaire</title>
-  <link rel="stylesheet" href="/css/style.css" />
-  <!-- Lottie (for the Thank-You animation) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
-    .container { max-width: 760px; margin: 32px auto 80px; padding: 0 16px; }
-    h1 { margin: 0 0 12px; font-size: 28px; }
-    .question { margin: 18px 0 0; }
-    textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 10px; min-height: 110px; }
-    button { margin-top: 10px; padding: 10px 16px; border: 0; border-radius: 10px; cursor: pointer; }
-    #thanks { display: none; margin-top: 40px; text-align: center; }
-    #thankyou-anim { width: 240px; margin: 12px auto 6px; }
-  </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Survey Studio</title>
+  <link rel="stylesheet" href="./css/theme.css"/>
 </head>
 <body>
   <div class="container">
-    <h1>Assignment Emotion Questionnaire</h1>
-
-    <form id="qForm">
-      <div class="question">
-        <label><strong>1) How hard was this assignment?</strong></label><br />
-        <label><input type="radio" name="difficulty" value="Easy" /> Easy</label>
-        <label style="margin-left:12px"><input type="radio" name="difficulty" value="Medium" /> Medium</label>
-        <label style="margin-left:12px"><input type="radio" name="difficulty" value="Hard" /> Hard</label>
-      </div>
-
-      <div class="question">
-        <label for="feelings"><strong>2) Tell us how you felt about it (a few sentences)</strong></label><br />
-        <textarea id="feelings" placeholder="Write a few sentences..."></textarea>
-      </div>
-
-      <button type="submit">Submit</button>
-    </form>
-
-    <div id="thanks">
-      <div id="thankyou-anim"></div>
-      <h3>Thank you!</h3>
-      <p>Your response has been recorded.</p>
+    <div class="card center">
+      <h1 style="margin-top:0">Survey Studio</h1>
+      <p class="badge">Fast surveys · Clean analytics · Share by link or QR</p>
+      <img src="./images/robot-2.png" alt="" style="max-width:240px;display:block;margin:16px auto 8px;border-radius:var(--radius);box-shadow:var(--shadow)"/>
+      <p style="color:var(--muted)">Create a survey in seconds. Choose multiple-choice or scales, then share a link.</p>
+      <button class="btn" onclick="location.href='create.html'">Start creating a survey</button>
     </div>
   </div>
-
-  <script src="/js/questionnaire.js"></script>
 </body>
 </html>

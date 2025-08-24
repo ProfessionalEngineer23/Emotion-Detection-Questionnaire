@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Survey Analytics</title>
+  <link rel="stylesheet" href="./css/theme.css"/>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h2 style="margin-top:0" id="title">Analytics</h2>
+    <div id="panels" class="grid"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const id = new URLSearchParams(location.search).get('id');
+async function load(){
+  const s = await (await fetch('/api/surveys/'+id)).json();
+  document.getElementById('title').textContent = `Analytics · ${s.title}`;
+  const a = await (await fetch('/api/surveys/'+id+'/analytics')).json();
+  const panels = document.getElementById('panels'); panels.innerHTML='';
+  a.forEach((q,idx)=>{
+    const card = document.createElement('div'); card.className='card';
+    card.innerHTML = `<div class="label">${idx+1}) ${q.text}</div><canvas id="c${idx}" height="160"></canvas>`;
+    panels.appendChild(card);
+    const ctx = card.querySelector('canvas').getContext('2d');
+    if(q.type==='mcq'){
+      new Chart(ctx,{type:'bar',data:{labels:q.labels,datasets:[{label:'Responses',data:q.counts}]}});
+    }else if(q.type==='scale'){
+      new Chart(ctx,{type:'line',data:{labels:q.bins.map(b=>b.label),datasets:[{label:'Count',data:q.bins.map(b=>b.count)}]}});
+    }else{
+      card.innerHTML += `<p class="muted">${q.count} text responses</p>`;
+    }
+  });
+}
+load();
+</script>
+</body>
+</html>
